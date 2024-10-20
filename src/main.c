@@ -1,16 +1,25 @@
 #include <stdio.h>
 #include <raylib.h>
 #include <math.h>
+#include <raymath.h>
 
 #define TILE_WIDTH 128
 #define TILE_HEIGHT 64
 #define TILE_WIDTH_HALF 64
 #define TILE_HEIGHT_HALF 32
 
+struct World
+{
+    int map[10][10];
+    Texture2D tileset;
+};
+
 void DrawTile(Vector2 worldPos, int tile, Texture2D tileset);
 Vector2 WorldToScreen(Vector2 pos);
 Vector2 ScreenToWorld(Vector2 pos);
 Vector2 ScreenToWorldGrid(Vector2 pos);
+void HandleInput(struct World *world);
+void Render(struct World *world);
 
 int main(void)
 {
@@ -23,29 +32,50 @@ int main(void)
 
     InitWindow(screenWidth, screenHeight, "Real Space Truckin");
 
-    Texture2D texture = LoadTexture("assets/TestingTileset.png");
+    struct World world;
+    world.tileset = LoadTexture("assets/TestingTileset.png");
+    for (int x = 0; x < 10; x++)
+    {
+        for (int y = 0; y < 10; y++)
+        {
+            world.map[x][y] = 1;
+        }
+    }
+    world.map[0][0] = 1;
+    world.map[1][0] = 2;
+    world.map[2][0] = 1;
+
+    Camera2D camera = {0};
+    camera.target = (Vector2){0,0};
+    camera.offset = (Vector2){ screenWidth/2.0f, screenHeight/2.0f };
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
+
 
     while (!WindowShouldClose()) {
-        mousePos = GetMousePosition();
-        mousePosWorldPos = ScreenToWorldGrid(mousePos);
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            printf("%f\n", mousePos.x);
+        mousePosWorldPos = ScreenToWorldGrid(GetScreenToWorld2D(GetMousePosition(), camera));
+
+        // Translate based on mouse right click
+        if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
+        {
+            Vector2 delta = GetMouseDelta();
+            delta = Vector2Scale(delta, -1.0f/camera.zoom);
+            camera.target = Vector2Add(camera.target, delta);
         }
 
         BeginDrawing();
         ClearBackground(SKYBLUE);
-        DrawTile((Vector2){0, 0}, 0, texture);
-        DrawTile((Vector2){1, 0}, 0, texture);
-        DrawTile((Vector2){1, 1}, 1, texture);
-
-        DrawTile(mousePosWorldPos, 3, texture);
+        BeginMode2D(camera);
+        Render(&world);
+        DrawTile(mousePosWorldPos, 3, world.tileset);
+        EndMode2D();
 
         EndDrawing();
 
     }
 
-    UnloadTexture(texture);
+    UnloadTexture(world.tileset);
     CloseWindow();
 
     return 0;
@@ -74,4 +104,20 @@ Vector2 ScreenToWorldGrid(Vector2 pos) {
         floorf(pos.x / TILE_WIDTH + pos.y / TILE_HEIGHT),
         floorf(pos.y / TILE_HEIGHT - pos.x / TILE_WIDTH)
     };
+}
+
+void HandleInput(struct World *world)
+{
+
+}
+
+void Render(struct World *world)
+{
+    for (int x = 0; x < 10; x++)
+    {
+        for (int y = 0; y < 10; y++)
+        {
+            DrawTile((Vector2){x,y}, world->map[x][y], world->tileset);
+        }
+    }
 }

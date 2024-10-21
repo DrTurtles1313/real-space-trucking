@@ -29,7 +29,9 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS})
 # Assign the include directories
 include_directories(${INCLUDE_DIRS})
 
-set(SOURCE_FILES src/main.c)
+set(SOURCE_FILES src/main.c
+        src/player.h
+)
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} raylib)

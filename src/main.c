@@ -61,6 +61,7 @@ int main(void) {
 
         HandleInput(&world);
         MovePlayer(&world.player);
+        world.camera.target = Vector2Add(WorldToScreen(world.player.position), (Vector2){64,32});
 
         BeginDrawing();
         ClearBackground(SKYBLUE);
@@ -98,19 +99,26 @@ Vector2 ScreenToWorld(Vector2 pos) {
 }
 
 Vector2 ScreenToWorldGrid(Vector2 pos) {
+    float x = floorf(pos.x / TILE_WIDTH + pos.y / TILE_HEIGHT);
+    float y = floorf(pos.y / TILE_HEIGHT - pos.x / TILE_WIDTH);
+    x = fmaxf(0.0f, x);
+    x = fminf(x, MAP_WIDTH - 1);
+    y = fmaxf(0.0f, y);
+    y = fminf(y, MAP_HEIGHT - 1);
+
+
     return (Vector2){
-        floorf(pos.x / TILE_WIDTH + pos.y / TILE_HEIGHT),
-        floorf(pos.y / TILE_HEIGHT - pos.x / TILE_WIDTH)
+        x,y
     };
 }
 
 void HandleInput(World* world) {
     // Translate based on mouse right click
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+    /*if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         Vector2 delta = GetMouseDelta();
         delta = Vector2Scale(delta, -1.0f / world->camera.zoom);
         world->camera.target = Vector2Add(world->camera.target, delta);
-    }
+    }*/
 
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         world->player.destination = world->mouseWorldPosition;

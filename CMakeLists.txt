@@ -31,6 +31,8 @@ include_directories(${INCLUDE_DIRS})
 
 set(SOURCE_FILES src/main.c
         src/player.h
+        src/station.c
+        src/station.h
 )
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 

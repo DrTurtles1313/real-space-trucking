@@ -3,6 +3,7 @@
 #include <math.h>
 #include <raymath.h>
 #include "player.h"
+#include "station.h"
 
 #define TILE_WIDTH 128
 #define TILE_HEIGHT 64
@@ -17,6 +18,7 @@ struct World {
     Camera2D camera;
     Player player;
     Vector2 mouseWorldPosition;
+    Station* testStation;
 };
 typedef struct World World;
 
@@ -55,6 +57,7 @@ int main(void) {
     world.player.destination = (Vector2){0, 0};
     world.player.speed = 5.0f;
 
+    world.testStation = NewStation(MINE, ORE, "Test Station", 2, ORE, PARTS);
 
     while (!WindowShouldClose()) {
         world.mouseWorldPosition = ScreenToWorldGrid(GetScreenToWorld2D(GetMousePosition(), world.camera));
@@ -122,6 +125,9 @@ void HandleInput(World* world) {
 
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         world->player.destination = world->mouseWorldPosition;
+    }
+    if (IsKeyPressed(KEY_A)) {
+        UpdateStation(world->testStation);
     }
 }
 

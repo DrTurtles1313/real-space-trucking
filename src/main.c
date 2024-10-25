@@ -123,7 +123,7 @@ void HandleInput(World* world) {
         world->camera.target = Vector2Add(world->camera.target, delta);
     }*/
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         world->player.destination = world->mouseWorldPosition;
     }
     if (IsKeyPressed(KEY_A)) {

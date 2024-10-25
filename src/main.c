@@ -57,7 +57,7 @@ int main(void) {
     world.player.destination = (Vector2){0, 0};
     world.player.speed = 5.0f;
 
-    world.testStation = NewStation(MINE, ORE, "Test Station", 2, ORE, PARTS);
+    world.testStation = NewStation(FACTORY);
 
     while (!WindowShouldClose()) {
         world.mouseWorldPosition = ScreenToWorldGrid(GetScreenToWorld2D(GetMousePosition(), world.camera));

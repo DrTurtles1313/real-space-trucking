@@ -8,7 +8,9 @@ enum Resource {
     FUEL,
     GAS,
     POP,
-    WEALTH
+    WEALTH,
+    SHIP_PARTS,
+    SUPPLIES
 };
 
 enum StationType {
@@ -51,7 +53,7 @@ struct Station {
 
 typedef struct Station Station;
 
-Station* NewStation(StationType type, Resource output, char name[], int numOfInputs, ...);
+Station* NewStation(StationType type);
 void FreeStation(Station *station);
 void InitStation(Station *station);
 void UpdateStation(Station *station);

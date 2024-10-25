@@ -3,37 +3,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Station* NewStation(StationType type, Resource output, char name[], int numOfInputs, ...) {
-    va_list args;
-    va_start(args, numOfInputs);
+
+
+Station* NewStation(StationType type) {
     Station *station = malloc(sizeof(Station));;
+
+    switch (type) {
+        case COLONY:
+        case FACTORY:
+            station->numOfInputs = 1;
+            break;
+        case SHIPYARD:
+            station->numOfInputs = 2;
+            break;
+        case MINE:
+            station->numOfInputs = 0;
+            break;
+    }
 
     station->stationType = type;
     station->stationState = INIT;
-
-    Resource inputTypes[numOfInputs];
-    int inputsPerCycle[numOfInputs];
-    int inputAmounts[numOfInputs];
-    int desiredInputAmounts[numOfInputs];
-    int inputPrices[numOfInputs];
-
-    for (int i = 0; i < numOfInputs; i++) {
-        inputTypes[i] = va_arg(args, Resource);
-    }
-
-    station->inputTypes = inputTypes;
-    station->inputsPerCycle = inputsPerCycle;
-    station->inputAmounts = inputAmounts;
-    station->desiredInputAmounts = desiredInputAmounts;
-    station->inputPrices = inputPrices;
-
-    station->outputType = output;
-    station->outputAmount = 512;
 
     return station;
 }
 
 void FreeStation(Station *station) {
+    free(station->inputTypes);
+    free(station->inputAmounts);
+    free(station->inputPrices);
+    free(station->inputsPerCycle);
+    free(station->desiredInputAmounts);
     free(station);
 }
 
@@ -53,20 +52,106 @@ void UpdateStation(Station *station) {
 }
 
 void InitStation(Station *station) {
+    Resource* inputResources;
+    int* inputsPerCycle;
+    int* inputAmounts;
+    int* desiredInputAmounts;
+    int* inputPrices;
+
+    switch (station->stationType) {
+        case FACTORY:
+            station->numOfInputs = 1;
+
+            inputResources = malloc(sizeof(Resource) * station->numOfInputs);
+            inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+            inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            inputPrices = malloc(sizeof(int) * station->numOfInputs);
+            inputResources[0] = ORE;
+            inputsPerCycle[0] = 50;
+            inputAmounts[0] = 0;
+            desiredInputAmounts[0] = 400;
+            inputPrices[0] = 30;
+
+            station->ticksPerCycle = 10;
+            station->maxTicksSinceLastCycle = 20;
+            station->desiredOutputAmount = 300;
+            station->outputPrice = 10;
+            station->outputPerCycle = 10;
+            station->outputType = PARTS;
+            break;
+        case SHIPYARD:
+            station->numOfInputs = 2;
+
+            inputResources = malloc(sizeof(Resource) * station->numOfInputs);
+            inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+            inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            inputPrices = malloc(sizeof(int) * station->numOfInputs);
+            inputResources[0] = PARTS;
+            inputsPerCycle[0] = 50;
+            inputAmounts[0] = 0;
+            desiredInputAmounts[0] = 400;
+            inputPrices[0] = 30;
+            inputResources[1] = TECH;
+            inputsPerCycle[1] = 50;
+            inputAmounts[1] = 0;
+            desiredInputAmounts[1] = 400;
+            inputPrices[1] = 30;
+
+            station->ticksPerCycle = 5;
+            station->maxTicksSinceLastCycle = 5;
+            station->desiredOutputAmount = 700;
+            station->outputPrice = 2;
+            station->outputPerCycle = 5;
+            station->outputType = SHIP_PARTS;
+            break;
+        case COLONY:
+            station->numOfInputs = 1;
+
+            inputResources = malloc(sizeof(Resource) * station->numOfInputs);
+            inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+            inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            inputPrices = malloc(sizeof(int) * station->numOfInputs);
+            inputResources[0] = SUPPLIES;
+            inputsPerCycle[0] = 50;
+            inputAmounts[0] = 0;
+            desiredInputAmounts[0] = 400;
+            inputPrices[0] = 30;
+
+            station->ticksPerCycle = 5;
+            station->maxTicksSinceLastCycle = 5;
+            station->desiredOutputAmount = 700;
+            station->outputPrice = 2;
+            station->outputPerCycle = 5;
+            station->outputType = POP;
+            break;
+        case MINE:
+            station->numOfInputs = 0;
+            inputResources = NULL;;
+            inputsPerCycle = NULL;
+            inputAmounts = NULL;;
+            desiredInputAmounts = NULL;
+            inputPrices = NULL;
+
+            station->ticksPerCycle = 5;
+            station->maxTicksSinceLastCycle = 5;
+            station->desiredOutputAmount = 700;
+            station->outputPrice = 2;
+            station->outputPerCycle = 5;
+            station->outputType = ORE;
+            break;
+    }
+
     station->stationState = IDLE;
-    station->outputPrice = 0;
     station->outputAmount = 0;
-    station->outputPerCycle = 0;
-    station->desiredOutputAmount = 0;
-    station->ticksPerCycle = 5;
     station->cycleTickCount = 0;
-    station->maxTicksSinceLastCycle = 10;
     station -> ticksSinceLastCycle = 0;
 
-    for (int i = 0; i < station->numOfInputs; i++) {
-        station->inputAmounts[i] = 0;
-        station->inputPrices[i] = 0;
-        station->desiredInputAmounts[i] = 0;
-        station->inputsPerCycle[i] = 0;
-    }
+    station->inputTypes = inputResources;
+    station->inputAmounts = inputAmounts;
+    station->inputPrices = inputPrices;
+    station->desiredInputAmounts = desiredInputAmounts;
+    station->inputsPerCycle = inputsPerCycle;
 }

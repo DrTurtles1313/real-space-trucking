@@ -57,4 +57,6 @@ Station* NewStation(StationType type);
 void FreeStation(Station *station);
 void InitStation(Station *station);
 void UpdateStation(Station *station);
+void CheckStationCycle(Station *station);
+void stationProductionCycle(Station *station);
 #endif //STATION_H

@@ -40,14 +40,14 @@ void UpdateStation(Station *station) {
     switch (station->stationState) {
     case IDLE:
         station->ticksSinceLastCycle += 1;
-        printf("Ticks: %d\n", station->ticksSinceLastCycle);
+        CheckStationCycle(station);
     case HALTED:
         break;
     case ACTIVE:
+        stationProductionCycle(station);
         break;
     case INIT:
         InitStation(station);
-        printf("Station Initialized!\n");
     }
 }
 
@@ -69,7 +69,7 @@ void InitStation(Station *station) {
             inputPrices = malloc(sizeof(int) * station->numOfInputs);
             inputResources[0] = ORE;
             inputsPerCycle[0] = 50;
-            inputAmounts[0] = 0;
+            inputAmounts[0] = 200;
             desiredInputAmounts[0] = 400;
             inputPrices[0] = 30;
 
@@ -154,4 +154,49 @@ void InitStation(Station *station) {
     station->inputPrices = inputPrices;
     station->desiredInputAmounts = desiredInputAmounts;
     station->inputsPerCycle = inputsPerCycle;
+
+    printf("Station Initialized!\n");
+}
+
+void CheckStationCycle(Station *station) {
+    if (station->stationState == IDLE) {
+        if (station->numOfInputs == 0) {
+            station->stationState = ACTIVE;
+            station->ticksSinceLastCycle = 0;
+            station->cycleTickCount = 0;
+        }
+        else {
+            int metInputs = 0;
+
+            for (int i = 0; i < station->numOfInputs; i++) {
+                if (station->inputAmounts[i] > station->inputsPerCycle[i]) {
+                    metInputs++;
+                }
+            }
+
+            if (metInputs == station->numOfInputs) {
+                station->stationState = ACTIVE;
+                station->ticksSinceLastCycle = 0;
+                station->cycleTickCount = 0;
+
+                for (int i = 0; i < station->numOfInputs; i++) {
+                    station->inputAmounts[i] -= station->inputsPerCycle[i];
+                }
+            }
+        }
+    }
+
+    printf("Station idle for: %d\n", station->ticksSinceLastCycle);
+}
+
+void stationProductionCycle(Station *station) {
+    if (station->cycleTickCount == station->ticksPerCycle) {
+        station->stationState = IDLE;
+        station->outputAmount += station->outputPerCycle;
+        printf("Station Produced! Total product: %d\n", station->outputAmount);
+    }
+    else {
+        station->cycleTickCount += 1;
+        printf("Station Producing, tick: %d\n", station->cycleTickCount);
+    }
 }

@@ -18,7 +18,7 @@ struct World {
     Camera2D camera;
     Player player;
     Vector2 mouseWorldPosition;
-    Station* testStation;
+    StationList stations;
 };
 typedef struct World World;
 
@@ -57,7 +57,9 @@ int main(void) {
     world.player.destination = (Vector2){0, 0};
     world.player.speed = 5.0f;
 
-    world.testStation = NewStation(FACTORY);
+    InitStationList(&world.stations);
+    PushStation(&world.stations, NewStation(PARTS_FACTORY));
+    PushStation(&world.stations, NewStation(SUPPLIES_FACTORY));
 
     while (!WindowShouldClose()) {
         world.mouseWorldPosition = ScreenToWorldGrid(GetScreenToWorld2D(GetMousePosition(), world.camera));
@@ -127,7 +129,7 @@ void HandleInput(World* world) {
         world->player.destination = world->mouseWorldPosition;
     }
     if (IsKeyPressed(KEY_A)) {
-        UpdateStation(world->testStation);
+        UpdateStations(&world->stations);
     }
 }
 

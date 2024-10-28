@@ -1,25 +1,11 @@
 #include "station.h"
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 
 
 Station* NewStation(StationType type) {
-    Station *station = malloc(sizeof(Station));;
-
-    switch (type) {
-        case COLONY:
-        case FACTORY:
-            station->numOfInputs = 1;
-            break;
-        case SHIPYARD:
-            station->numOfInputs = 2;
-            break;
-        case MINE:
-            station->numOfInputs = 0;
-            break;
-    }
+    Station *station = malloc(sizeof(Station));
 
     station->stationType = type;
     station->stationState = INIT;
@@ -36,6 +22,13 @@ void FreeStation(Station *station) {
     free(station);
 }
 
+void UpdateStations(StationList* stations) {
+    for (int i = 0; i <= stations->top; i++) {
+        UpdateStation(stations->stations[i]);
+    }
+}
+
+//Update station based on state
 void UpdateStation(Station *station) {
     switch (station->stationState) {
     case IDLE:
@@ -52,14 +45,36 @@ void UpdateStation(Station *station) {
 }
 
 void InitStation(Station *station) {
-    Resource* inputResources;
-    int* inputsPerCycle;
-    int* inputAmounts;
-    int* desiredInputAmounts;
-    int* inputPrices;
+    Resource* inputResources = NULL;
+    int* inputsPerCycle = NULL;
+    int* inputAmounts = NULL;
+    int* desiredInputAmounts = NULL;
+    int* inputPrices = NULL;
 
+    //Set default station values
     switch (station->stationType) {
-        case FACTORY:
+        case SUPPLIES_FACTORY:
+            station->numOfInputs = 1;
+
+            inputResources = malloc(sizeof(Resource) * station->numOfInputs);
+            inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+            inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            inputPrices = malloc(sizeof(int) * station->numOfInputs);
+            inputResources[0] = ORE;
+            inputsPerCycle[0] = 50;
+            inputAmounts[0] = 200;
+            desiredInputAmounts[0] = 400;
+            inputPrices[0] = 30;
+
+            station->ticksPerCycle = 10;
+            station->maxTicksSinceLastCycle = 20;
+            station->desiredOutputAmount = 300;
+            station->outputPrice = 10;
+            station->outputPerCycle = 10;
+            station->outputType = SUPPLIES;
+            break;
+        case PARTS_FACTORY:
             station->numOfInputs = 1;
 
             inputResources = malloc(sizeof(Resource) * station->numOfInputs);
@@ -106,7 +121,7 @@ void InitStation(Station *station) {
             station->outputPerCycle = 5;
             station->outputType = SHIP_PARTS;
             break;
-        case COLONY:
+        case POP_COLONY:
             station->numOfInputs = 1;
 
             inputResources = malloc(sizeof(Resource) * station->numOfInputs);
@@ -127,13 +142,29 @@ void InitStation(Station *station) {
             station->outputPerCycle = 5;
             station->outputType = POP;
             break;
-        case MINE:
+        case TECH_COLONY:
+            station->numOfInputs = 1;
+
+            inputResources = malloc(sizeof(Resource) * station->numOfInputs);
+            inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+            inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            inputPrices = malloc(sizeof(int) * station->numOfInputs);
+            inputResources[0] = SUPPLIES;
+            inputsPerCycle[0] = 50;
+            inputAmounts[0] = 0;
+            desiredInputAmounts[0] = 400;
+            inputPrices[0] = 30;
+
+            station->ticksPerCycle = 5;
+            station->maxTicksSinceLastCycle = 5;
+            station->desiredOutputAmount = 700;
+            station->outputPrice = 2;
+            station->outputPerCycle = 5;
+            station->outputType = TECH;
+            break;
+        case ORE_MINE:
             station->numOfInputs = 0;
-            inputResources = NULL;;
-            inputsPerCycle = NULL;
-            inputAmounts = NULL;;
-            desiredInputAmounts = NULL;
-            inputPrices = NULL;
 
             station->ticksPerCycle = 5;
             station->maxTicksSinceLastCycle = 5;
@@ -141,6 +172,37 @@ void InitStation(Station *station) {
             station->outputPrice = 2;
             station->outputPerCycle = 5;
             station->outputType = ORE;
+            break;
+        case GAS_MINE:
+            station->numOfInputs = 0;
+
+            station->ticksPerCycle = 5;
+            station->maxTicksSinceLastCycle = 5;
+            station->desiredOutputAmount = 700;
+            station->outputPrice = 1;
+            station->outputPerCycle = 5;
+            station->outputType = GAS;
+            break;
+        case REFINERY:
+            station->numOfInputs = 1;
+
+            inputResources = malloc(sizeof(Resource) * station->numOfInputs);
+            inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+            inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+            inputPrices = malloc(sizeof(int) * station->numOfInputs);
+            inputResources[0] = GAS;
+            inputsPerCycle[0] = 50;
+            inputAmounts[0] = 200;
+            desiredInputAmounts[0] = 400;
+            inputPrices[0] = 30;
+
+            station->ticksPerCycle = 10;
+            station->maxTicksSinceLastCycle = 20;
+            station->desiredOutputAmount = 300;
+            station->outputPrice = 10;
+            station->outputPerCycle = 10;
+            station->outputType = FUEL;
             break;
     }
 
@@ -158,30 +220,28 @@ void InitStation(Station *station) {
     printf("Station Initialized!\n");
 }
 
+//Check if station has enough resources to begin production
 void CheckStationCycle(Station *station) {
-    if (station->stationState == IDLE) {
-        if (station->numOfInputs == 0) {
+    if (station->numOfInputs == 0) {
+        station->stationState = ACTIVE;
+        station->ticksSinceLastCycle = 0;
+        station->cycleTickCount = 0;
+    } else {
+        int metInputs = 0;
+
+        for (int i = 0; i < station->numOfInputs; i++) {
+            if (station->inputAmounts[i] > station->inputsPerCycle[i]) {
+                metInputs++;
+            }
+        }
+
+        if (metInputs == station->numOfInputs) {
             station->stationState = ACTIVE;
             station->ticksSinceLastCycle = 0;
             station->cycleTickCount = 0;
-        }
-        else {
-            int metInputs = 0;
 
             for (int i = 0; i < station->numOfInputs; i++) {
-                if (station->inputAmounts[i] > station->inputsPerCycle[i]) {
-                    metInputs++;
-                }
-            }
-
-            if (metInputs == station->numOfInputs) {
-                station->stationState = ACTIVE;
-                station->ticksSinceLastCycle = 0;
-                station->cycleTickCount = 0;
-
-                for (int i = 0; i < station->numOfInputs; i++) {
-                    station->inputAmounts[i] -= station->inputsPerCycle[i];
-                }
+                station->inputAmounts[i] -= station->inputsPerCycle[i];
             }
         }
     }
@@ -189,6 +249,7 @@ void CheckStationCycle(Station *station) {
     printf("Station idle for: %d\n", station->ticksSinceLastCycle);
 }
 
+//Run station production cycle
 void stationProductionCycle(Station *station) {
     if (station->cycleTickCount == station->ticksPerCycle) {
         station->stationState = IDLE;
@@ -199,4 +260,47 @@ void stationProductionCycle(Station *station) {
         station->cycleTickCount += 1;
         printf("Station Producing, tick: %d\n", station->cycleTickCount);
     }
+}
+
+Station* PopStation(StationList* stationList) {
+    if (IsStationListEmpty(stationList)) {
+        printf("Stack Underflow");
+        return NULL;
+    }
+
+    Station* popped = stationList->stations[stationList->top];
+    stationList->top--;
+
+    return popped;
+}
+
+void PushStation(StationList* stationList, Station* station) {
+    if (IsStationListFull(stationList)) {
+        printf("Stack Overflow");
+    }
+
+    stationList->top++;
+    stationList->stations[stationList->top] = station;
+}
+
+Station* PeekStation(StationList* stationList) {
+    if (IsStationListEmpty(stationList)) {
+        printf("Stack is empty");
+        return NULL;
+    }
+
+    Station* peeked = stationList->stations[stationList->top];
+    return peeked;
+}
+
+bool IsStationListEmpty(StationList* stationList) {
+    return stationList->top == -1;
+}
+
+bool IsStationListFull(StationList* stationList) {
+    return stationList->top == MAX_STATIONS - 1;
+}
+
+void InitStationList(StationList* stationList) {
+    stationList->top = -1;
 }

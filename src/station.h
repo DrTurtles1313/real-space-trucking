@@ -1,6 +1,9 @@
 #ifndef STATION_H
 #define STATION_H
 
+#include <stdbool.h>
+#define MAX_STATIONS 500
+
 enum Resource {
     ORE,
     PARTS,
@@ -14,10 +17,14 @@ enum Resource {
 };
 
 enum StationType {
-    FACTORY,
+    PARTS_FACTORY,
+    SUPPLIES_FACTORY,
     SHIPYARD,
-    COLONY,
-    MINE
+    TECH_COLONY,
+    POP_COLONY,
+    ORE_MINE,
+    GAS_MINE,
+    REFINERY,
 };
 
 enum StationState {
@@ -52,6 +59,20 @@ struct Station {
 };
 
 typedef struct Station Station;
+
+struct StationList {
+    Station *stations[MAX_STATIONS];
+    int top;
+};
+typedef struct StationList StationList;
+
+Station* PopStation(StationList* stationList);
+void PushStation(StationList* stationList, Station *station);
+Station* PeakStationList(StationList* stationList);
+bool IsStationListFull(StationList* stationList);
+bool IsStationListEmpty(StationList* stationList);
+void InitStationList(StationList* stationList);
+void UpdateStations(StationList* stations);
 
 Station* NewStation(StationType type);
 void FreeStation(Station *station);

@@ -69,16 +69,17 @@ typedef struct StationList StationList;
 
 Station* PopStation(StationList* stationList);
 void PushStation(StationList* stationList, Station *station);
-Station* PeakStationList(StationList* stationList);
+Station* PeekStationList(StationList* stationList);
 bool IsStationListFull(StationList* stationList);
 bool IsStationListEmpty(StationList* stationList);
 void InitStationList(StationList* stationList);
+void FreeStationList(StationList* stationList);
 void UpdateStations(StationList* stations);
 
 Station* NewStation(StationType type);
-void FreeStation(Station *station);
-void InitStation(Station *station);
-void UpdateStation(Station *station);
-void CheckStationCycle(Station *station);
-void stationProductionCycle(Station *station);
+static void FreeStation(Station *station);
+static void InitStation(Station *station);
+static void UpdateStation(Station *station);
+static void CheckStationCycle(Station *station);
+static void stationProductionCycle(Station *station);
 #endif //STATION_H

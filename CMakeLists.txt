@@ -33,6 +33,8 @@ set(SOURCE_FILES src/main.c
         src/player.h
         src/station.c
         src/station.h
+        src/world.c
+        src/world.h
 )
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 

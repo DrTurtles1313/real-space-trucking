@@ -29,7 +29,7 @@ void UpdateStations(StationList* stations) {
 }
 
 //Update station based on state
-void UpdateStation(Station *station) {
+static void UpdateStation(Station *station) {
     switch (station->stationState) {
     case IDLE:
         station->ticksSinceLastCycle += 1;
@@ -44,7 +44,7 @@ void UpdateStation(Station *station) {
     }
 }
 
-void InitStation(Station *station) {
+static void InitStation(Station *station) {
     Resource* inputResources = NULL;
     int* inputsPerCycle = NULL;
     int* inputAmounts = NULL;
@@ -222,7 +222,7 @@ void InitStation(Station *station) {
 
 //Check if station has enough resources to begin production
 //If not, evaluate time spent idle to raise prices
-void CheckStationCycle(Station *station) {
+static void CheckStationCycle(Station *station) {
     //Stations with no input requirements should be active
     //TODO: Check if output storage is full before setting to active
     if (station->numOfInputs == 0) {
@@ -262,7 +262,7 @@ void CheckStationCycle(Station *station) {
 }
 
 //Run station production cycle
-void stationProductionCycle(Station *station) {
+static void stationProductionCycle(Station *station) {
     if (station->cycleTickCount == station->ticksPerCycle) {
         station->stationState = IDLE;
         station->outputAmount += station->outputPerCycle;
@@ -314,4 +314,14 @@ bool IsStationListFull(StationList* stationList) {
 
 void InitStationList(StationList* stationList) {
     stationList->top = -1;
+}
+
+void FreeStationList(StationList* stationList) {
+    for (int i = 0; i < MAX_STATIONS; i++) {
+        if (stationList->stations[i] != NULL) {
+            FreeStation(stationList->stations[i]);
+        }
+    }
+
+    free(stationList->stations);
 }

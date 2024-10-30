@@ -31,7 +31,7 @@ Vector2 ScreenToWorldGrid(Vector2 pos);
 void HandleInput(World* world);
 void Render(World* world);
 void MovePlayer(Player* player);
-void DebugGui(StationList *stations, char *message, World *world);
+void DebugGui(World *world, char *message);
 
 int debugStation = 0;
 bool debug;
@@ -89,7 +89,7 @@ int main(void) {
         EndMode2D();
 
         if (debug) {
-            DebugGui(&world.stations, messageBox, &world);
+            DebugGui(&world, messageBox);
         }
 
 
@@ -145,7 +145,7 @@ void HandleInput(World* world) {
         world->camera.target = Vector2Add(world->camera.target, delta);
     }*/
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !debug) {
         world->player.destination = world->mouseWorldPosition;
     }
     if (IsKeyPressed(KEY_A)) {
@@ -176,10 +176,10 @@ Vector2 viewScroll = {0,0};
 Rectangle view = {0};
 const char DEBUG_STRING[] = "ID: %d\nState: %d\nType: %d\nProd Cycle Length: %d\nProd Cycle Progress: %d\nIdle Time Mult: %d\nTicks Idle: %d";
 
-void DebugGui(StationList *stations, char *message, World *world) {
+void DebugGui(World *world, char *message) {
 
-    if (!IsStationListEmpty(stations)) {
-        Station *station = stations->stations[debugStation];
+    if (!IsStationListEmpty(&world->stations)) {
+        Station *station = world->stations.stations[debugStation];
         int inputs = station->numOfInputs;
 
         GuiScrollPanel((Rectangle){0,0,230,400}, NULL, (Rectangle){0,0,250,2000}, &viewScroll, &view);
@@ -207,6 +207,9 @@ void DebugGui(StationList *stations, char *message, World *world) {
         }
         if (GuiButton((Rectangle){180 + viewScroll.x, 25 + viewScroll.y, 25,25}, "v")) {
             debugStation = new_max(0, debugStation - 1);
+        }
+        if (GuiButton((Rectangle){180 + viewScroll.x, 50 + viewScroll.y, 25,25}, ">")) {
+            UpdateStations(&world->stations);
         }
 
         EndScissorMode();

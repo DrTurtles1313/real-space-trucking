@@ -2,6 +2,8 @@
 #include <raylib.h>
 #include <math.h>
 #include <raymath.h>
+#define RAYGUI_IMPLEMENTATION
+#include <raygui.h>
 #include "player.h"
 #include "station.h"
 
@@ -29,6 +31,10 @@ Vector2 ScreenToWorldGrid(Vector2 pos);
 void HandleInput(World* world);
 void Render(World* world);
 void MovePlayer(Player* player);
+void DebugGui(StationList *stations, char *message, World *world);
+
+int debugStation = 0;
+bool debug;
 
 int main(void) {
     const int screenWidth = 800;
@@ -36,6 +42,7 @@ int main(void) {
 
     SetTargetFPS(60);
     InitWindow(screenWidth, screenHeight, "Real Space Truckin");
+    GuiLoadStyle("assets/style_dark.rgs");
 
     World world;
     world.tileset = LoadTexture("assets/TestingTileset.png");
@@ -59,7 +66,12 @@ int main(void) {
 
     InitStationList(&world.stations);
     PushStation(&world.stations, NewStation(PARTS_FACTORY));
-    PushStation(&world.stations, NewStation(SUPPLIES_FACTORY));
+    PushStation(&world.stations, NewStation(ORE_MINE));
+    PushStation(&world.stations, NewStation(SHIPYARD));
+
+    char messageBox[2048];
+    UpdateStations(&world.stations);
+
 
     while (!WindowShouldClose()) {
         world.mouseWorldPosition = ScreenToWorldGrid(GetScreenToWorld2D(GetMousePosition(), world.camera));
@@ -69,13 +81,18 @@ int main(void) {
         world.camera.target = Vector2Add(WorldToScreen(world.player.position), (Vector2){64,32});
 
         BeginDrawing();
-        ClearBackground(SKYBLUE);
+        ClearBackground(BLACK);
         BeginMode2D(world.camera);
-
 
         Render(&world);
 
         EndMode2D();
+
+        if (debug) {
+            DebugGui(&world.stations, messageBox, &world);
+        }
+
+
         EndDrawing();
     }
 
@@ -117,6 +134,9 @@ Vector2 ScreenToWorldGrid(Vector2 pos) {
     };
 }
 
+#define new_max(x,y) (((x) >= (y)) ? (x) : (y))
+#define new_min(x,y) (((x) <= (y)) ? (x) : (y))
+
 void HandleInput(World* world) {
     // Translate based on mouse right click
     /*if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
@@ -130,6 +150,9 @@ void HandleInput(World* world) {
     }
     if (IsKeyPressed(KEY_A)) {
         UpdateStations(&world->stations);
+    }
+    if (IsKeyPressed(KEY_D)) {
+        debug = !debug;
     }
 }
 
@@ -146,5 +169,46 @@ void Render(World* world) {
 void MovePlayer(Player* player) {
     if (player->position.x != player->destination.x || player->position.y != player->destination.y) {
         player->position = Vector2MoveTowards(player->position, player->destination, player->speed * GetFrameTime());
+    }
+}
+
+Vector2 viewScroll = {0,0};
+Rectangle view = {0};
+const char DEBUG_STRING[] = "ID: %d\nState: %d\nType: %d\nProd Cycle Length: %d\nProd Cycle Progress: %d\nIdle Time Mult: %d\nTicks Idle: %d";
+
+void DebugGui(StationList *stations, char *message, World *world) {
+
+    if (!IsStationListEmpty(stations)) {
+        Station *station = stations->stations[debugStation];
+        int inputs = station->numOfInputs;
+
+        GuiScrollPanel((Rectangle){0,0,230,400}, NULL, (Rectangle){0,0,250,2000}, &viewScroll, &view);
+        BeginScissorMode(view.x, view.y, view.width, view.height);
+
+        snprintf(message, 2048, DEBUG_STRING, station->id,
+            station->stationState, station->stationType, station->ticksPerCycle, station->cycleTickCount,
+            station->maxTicksSinceLastCycle, station->ticksSinceLastCycle);
+
+        GuiTextBox((Rectangle){0 + viewScroll.x, 0 + viewScroll.y,180,180}, message, 26, false);
+        //GuiGrid((Rectangle){200 + viewScroll.x, viewScroll.y, 100, 1000}, NULL, 16, 3, NULL);
+
+        snprintf(message, 2048, "Output Type: %d\nAmount: %d\nTarget Amount: %d\n\\Cycle: %d\nPrice: %d", station->outputType,
+                station->outputAmount, station->desiredOutputAmount, station->outputPerCycle, station->outputPrice);
+        GuiTextBox((Rectangle){0 + viewScroll.x,180 + viewScroll.y,180,130}, message, 26, false);
+
+        for (int i = 0; i < inputs; i++) {
+            snprintf(message, 2048, "Input Type: %d\nAmount: %d\nTarget Amount: %d\n\\Cycle: %d\nPrice: %d", station->inputTypes[i],
+                station->inputAmounts[i], station->desiredInputAmounts[i], station->inputsPerCycle[i], station->inputPrices[i]);
+            GuiTextBox((Rectangle){0 + viewScroll.x,180 + 130 + 130 * i + viewScroll.y,180,130}, message, 26, false);
+        }
+
+        if (GuiButton((Rectangle){180 + viewScroll.x, viewScroll.y, 25,25}, "^")) {
+            debugStation = new_min(world->stations.top, debugStation + 1);
+        }
+        if (GuiButton((Rectangle){180 + viewScroll.x, 25 + viewScroll.y, 25,25}, "v")) {
+            debugStation = new_max(0, debugStation - 1);
+        }
+
+        EndScissorMode();
     }
 }

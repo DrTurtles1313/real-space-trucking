@@ -25,7 +25,7 @@ project(${PROJECT_NAME})
 set(CMAKE_C_STANDARD 11)
 
 # Include paths
-set(INCLUDE_DIRS ${INCLUDE_DIRS})
+set(INCLUDE_DIRS ${INCLUDE_DIRS} include)
 # Assign the include directories
 include_directories(${INCLUDE_DIRS})
 

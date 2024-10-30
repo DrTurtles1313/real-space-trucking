@@ -56,6 +56,7 @@ struct Station {
     int cycleTickCount;
     int maxTicksSinceLastCycle;
     int ticksSinceLastCycle;
+    int id;
 };
 
 typedef struct Station Station;

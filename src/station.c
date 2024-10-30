@@ -221,20 +221,25 @@ void InitStation(Station *station) {
 }
 
 //Check if station has enough resources to begin production
+//If not, evaluate time spent idle to raise prices
 void CheckStationCycle(Station *station) {
+    //Stations with no input requirements should be active
+    //TODO: Check if output storage is full before setting to active
     if (station->numOfInputs == 0) {
         station->stationState = ACTIVE;
         station->ticksSinceLastCycle = 0;
         station->cycleTickCount = 0;
     } else {
+        //Check how many inputs meet their requirements for 1 cycle
         int metInputs = 0;
 
         for (int i = 0; i < station->numOfInputs; i++) {
-            if (station->inputAmounts[i] > station->inputsPerCycle[i]) {
+            if (station->inputAmounts[i] >= station->inputsPerCycle[i]) {
                 metInputs++;
             }
         }
 
+        //Set the station to active, and consume inputs.
         if (metInputs == station->numOfInputs) {
             station->stationState = ACTIVE;
             station->ticksSinceLastCycle = 0;
@@ -243,10 +248,17 @@ void CheckStationCycle(Station *station) {
             for (int i = 0; i < station->numOfInputs; i++) {
                 station->inputAmounts[i] -= station->inputsPerCycle[i];
             }
+        } else {
+            //Increase prices if we have been idle for a multiple of idle time multiplier
+            if (station->ticksSinceLastCycle % station->maxTicksSinceLastCycle == 0) {
+                for (int i = 0; i < station->numOfInputs; i++) {
+                    if (station->inputAmounts[i] < station->inputsPerCycle[i]) {
+                        station->inputPrices[i] += 2;
+                    }
+                }
+            }
         }
     }
-
-    printf("Station idle for: %d\n", station->ticksSinceLastCycle);
 }
 
 //Run station production cycle
@@ -254,11 +266,9 @@ void stationProductionCycle(Station *station) {
     if (station->cycleTickCount == station->ticksPerCycle) {
         station->stationState = IDLE;
         station->outputAmount += station->outputPerCycle;
-        printf("Station Produced! Total product: %d\n", station->outputAmount);
     }
     else {
         station->cycleTickCount += 1;
-        printf("Station Producing, tick: %d\n", station->cycleTickCount);
     }
 }
 
@@ -280,6 +290,7 @@ void PushStation(StationList* stationList, Station* station) {
     }
 
     stationList->top++;
+    station->id = stationList->top;
     stationList->stations[stationList->top] = station;
 }
 

@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
 Station* NewStation(StationType type) {
     Station *station = malloc(sizeof(Station));
 
@@ -324,4 +322,66 @@ void FreeStationList(StationList* stationList) {
     }
 
     free(stationList->stations);
+}
+
+char* ResourceToString(Resource resource) {
+    switch (resource) {
+        case ORE:
+            return "ORE";
+        case PARTS:
+            return "PARTS";
+        case TECH:
+            return "TECH";
+        case FUEL:
+            return "FUEL";
+        case GAS:
+            return "GAS";
+        case POP:
+            return "POP";
+        case WEALTH:
+            return "WEALTH";
+        case SHIP_PARTS:
+            return "SHIP_PARTS";
+        case SUPPLIES:
+            return "SUPPLIES";
+    }
+
+    return "0";
+}
+
+char* StationTypeToString(StationType station) {
+    switch (station) {
+        case PARTS_FACTORY:
+            return "PARTS_FACTORY";
+        case SUPPLIES_FACTORY:
+            return "SUPPLIES_FACTORY";
+        case SHIPYARD:
+            return "SHIPYARD";
+        case TECH_COLONY:
+            return "TECH_COLONY";
+        case POP_COLONY:
+            return "POP_COLONY";
+        case ORE_MINE:
+            return "ORE_MINE";
+        case GAS_MINE:
+            return "GAS_MINE";
+        case REFINERY:
+            return "REFINERY";
+    }
+    return "0";
+}
+
+char* StationStateToString(StationState state) {
+    switch (state) {
+        case IDLE:
+            return "IDLE";
+        case HALTED:
+            return "HALTED";
+        case ACTIVE:
+            return "ACTIVE";
+        case INIT:
+            return "INIT";
+    }
+
+    return "0";
 }

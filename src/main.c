@@ -52,9 +52,7 @@ int main(void) {
     char messageBox[2048];
     UpdateStations(&world.stations);
 
-
     while (!WindowShouldClose()) {
-
         UpdateWorld(&world);
 
         BeginDrawing();
@@ -79,7 +77,7 @@ int main(void) {
 //Debug GUI Stuff
 Vector2 viewScroll = {0,0};
 Rectangle view = {0};
-const char DEBUG_STRING[] = "ID: %d\nState: %d\nType: %d\nProd Cycle Length: %d\nProd Cycle Progress: %d\nIdle Time Mult: %d\nTicks Idle: %d";
+const char DEBUG_STRING[] = "ID: %d\nState: %s\nType: %s\nProd Cycle Length: %d\nProd Cycle Progress: %d\nIdle Time Mult: %d\nTicks Idle: %d";
 #define new_max(x,y) (((x) >= (y)) ? (x) : (y))
 #define new_min(x,y) (((x) <= (y)) ? (x) : (y))
 
@@ -93,18 +91,18 @@ void DebugGui(World *world, char *message) {
         BeginScissorMode(view.x, view.y, view.width, view.height);
 
         snprintf(message, 2048, DEBUG_STRING, station->id,
-            station->stationState, station->stationType, station->ticksPerCycle, station->cycleTickCount,
+            StationStateToString(station->stationState), StationTypeToString(station->stationType), station->ticksPerCycle, station->cycleTickCount,
             station->maxTicksSinceLastCycle, station->ticksSinceLastCycle);
 
         GuiTextBox((Rectangle){0 + viewScroll.x, 0 + viewScroll.y,180,180}, message, 26, false);
         //GuiGrid((Rectangle){200 + viewScroll.x, viewScroll.y, 100, 1000}, NULL, 16, 3, NULL);
 
-        snprintf(message, 2048, "Output Type: %d\nAmount: %d\nTarget Amount: %d\n\\Cycle: %d\nPrice: %d", station->outputType,
+        snprintf(message, 2048, "Output Type: %s\nAmount: %d\nTarget Amount: %d\n\\Cycle: %d\nPrice: %d", ResourceToString(station->outputType),
                 station->outputAmount, station->desiredOutputAmount, station->outputPerCycle, station->outputPrice);
         GuiTextBox((Rectangle){0 + viewScroll.x,180 + viewScroll.y,180,130}, message, 26, false);
 
         for (int i = 0; i < inputs; i++) {
-            snprintf(message, 2048, "Input Type: %d\nAmount: %d\nTarget Amount: %d\n\\Cycle: %d\nPrice: %d", station->inputTypes[i],
+            snprintf(message, 2048, "Input Type: %s\nAmount: %d\nTarget Amount: %d\n\\Cycle: %d\nPrice: %d", ResourceToString(station->inputTypes[i]),
                 station->inputAmounts[i], station->desiredInputAmounts[i], station->inputsPerCycle[i], station->inputPrices[i]);
             GuiTextBox((Rectangle){0 + viewScroll.x,180 + 130 + 130 * i + viewScroll.y,180,130}, message, 26, false);
         }
@@ -119,7 +117,7 @@ void DebugGui(World *world, char *message) {
             UpdateStations(&world->stations);
         }
         GuiCheckBox((Rectangle){180 + viewScroll.x, 75 + viewScroll.y, 35,25}, "Run", &world->runTicks);
-        snprintf(message, 2048, "FT: %.2f", GetFrameTime() * 1000);
+        snprintf(message, 2048, "FT: %.2f", 1 / GetFrameTime());
         GuiLabel((Rectangle){180 + viewScroll.x, 100 + viewScroll.y, 80,25}, message);
 
         EndScissorMode();

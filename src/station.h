@@ -82,4 +82,8 @@ static void InitStation(Station *station);
 static void UpdateStation(Station *station);
 static void CheckStationCycle(Station *station);
 static void stationProductionCycle(Station *station);
+
+char* ResourceToString(Resource resource);
+char* StationTypeToString(StationType type);
+char* StationStateToString(StationState state);
 #endif //STATION_H

@@ -45,9 +45,7 @@ int main(void) {
     world.timeSinceTick = 0.0f;
 
     InitStationList(&world.stations);
-    PushStation(&world.stations, NewStation(PARTS_FACTORY));
-    PushStation(&world.stations, NewStation(ORE_MINE));
-    PushStation(&world.stations, NewStation(SHIPYARD));
+    LoadStations(&world.stations);
 
     char messageBox[2048];
     UpdateStations(&world.stations);
@@ -67,6 +65,8 @@ int main(void) {
 
         EndDrawing();
     }
+
+    SaveStations(&world.stations);
 
     UnloadTexture(world.tileset);
     CloseWindow();

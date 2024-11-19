@@ -86,4 +86,7 @@ static void stationProductionCycle(Station *station);
 char* ResourceToString(Resource resource);
 char* StationTypeToString(StationType type);
 char* StationStateToString(StationState state);
+
+void SaveStations(StationList *stationList);
+void LoadStations(StationList *stationList);
 #endif //STATION_H

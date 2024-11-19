@@ -1,6 +1,7 @@
 #include "station.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 Station* NewStation(StationType type) {
     Station *station = malloc(sizeof(Station));
@@ -292,7 +293,7 @@ void PushStation(StationList* stationList, Station* station) {
     stationList->stations[stationList->top] = station;
 }
 
-Station* PeekStation(StationList* stationList) {
+Station* PeekStationList(StationList* stationList) {
     if (IsStationListEmpty(stationList)) {
         printf("Stack is empty");
         return NULL;
@@ -384,4 +385,82 @@ char* StationStateToString(StationState state) {
     }
 
     return "0";
+}
+
+void SaveStations(StationList* stationList) {
+    FILE* filePointer = fopen("assets/Stations", "w");
+
+    while (!IsStationListEmpty(stationList)) {
+        Station* station = PopStation(stationList);
+
+        fprintf(filePointer, "%d,%d,%d,", station->stationType, station->ticksPerCycle, station->maxTicksSinceLastCycle);
+        fprintf(filePointer, "%d,%d,%d,%d,%d,", station->outputType, station->outputAmount, station->outputPrice, station->outputPerCycle, station->desiredOutputAmount);
+        fprintf(filePointer, "%d,", station->numOfInputs);
+        for (int i = 0; i < station->numOfInputs; i++) {
+            fprintf(filePointer, "%d,%d,%d,%d,%d,", station->inputTypes[i], station->inputAmounts[i], station->inputPrices[i], station->inputsPerCycle[i], station->desiredInputAmounts[i]);
+        }
+        fprintf(filePointer, "\n");
+
+        free(station);
+    }
+
+    fclose(filePointer);
+}
+
+void LoadStations(StationList* stationList) {
+    //char * buffer = 0;
+    //long length;
+    FILE * f = fopen ("assets/Stations", "r");
+    char buffer[50];
+
+    while (fgets(buffer, 50, f)) {
+        printf("%s", buffer);
+
+        Station* station = malloc(sizeof(Station));
+
+        char* token = strtok(buffer, ",");
+
+        station->stationType = atoi(token);
+        token = strtok(NULL, ",");
+        station->ticksPerCycle = atoi(token);
+        token = strtok(NULL, ",");
+        station->maxTicksSinceLastCycle = atoi(token);
+
+        token = strtok(NULL, ",");
+        station->outputType = atoi(token);
+        token = strtok(NULL, ",");
+        station->outputAmount = atoi(token);
+        token = strtok(NULL, ",");
+        station->outputPrice = atoi(token);
+        token = strtok(NULL, ",");
+        station->outputPerCycle = atoi(token);
+        token = strtok(NULL, ",");
+        station->desiredOutputAmount = atoi(token);
+
+        token = strtok(NULL, ",");
+        station->numOfInputs = atoi(token);
+
+        station->inputTypes = malloc(sizeof(Resource) * station->numOfInputs);
+        station->inputAmounts = malloc(sizeof(int) * station->numOfInputs);
+        station->inputPrices = malloc(sizeof(int) * station->numOfInputs);
+        station->inputsPerCycle = malloc(sizeof(int) * station->numOfInputs);
+        station->desiredInputAmounts = malloc(sizeof(int) * station->numOfInputs);
+
+        for (int i = 0; i < station->numOfInputs; i++) {
+            token = strtok(NULL, ",");
+            station->inputTypes[i] = atoi(token);
+            token = strtok(NULL, ",");
+            station->inputAmounts[i] = atoi(token);
+            token = strtok(NULL, ",");
+            station->inputPrices[i] = atoi(token);
+            token = strtok(NULL, ",");
+            station->inputsPerCycle[i] = atoi(token);
+            token = strtok(NULL, ",");
+            station->desiredInputAmounts[i] = atoi(token);
+        }
+
+        station->stationState = IDLE;
+
+        PushStation(stationList, station);
+    }
 }

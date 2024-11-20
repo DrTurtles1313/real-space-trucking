@@ -4,12 +4,15 @@
 #include <raylib.h>
 #include <math.h>
 #include <raymath.h>
-#include <raygui.h>
+#include "raygui.h"
 #include "player.h"
 #include "station.h"
 #include "world.h"
 
 void DebugGui(World *world, char *message);
+
+int valueBox = 0;
+bool editMode = false;
 
 int main(void) {
     const int screenWidth = 800;
@@ -45,10 +48,8 @@ int main(void) {
     world.timeSinceTick = 0.0f;
 
     InitStationList(&world.stations);
-    LoadStations(&world.stations);
 
     char messageBox[2048];
-    UpdateStations(&world.stations);
 
     while (!WindowShouldClose()) {
         UpdateWorld(&world);
@@ -66,8 +67,6 @@ int main(void) {
         EndDrawing();
     }
 
-    SaveStations(&world.stations);
-
     UnloadTexture(world.tileset);
     CloseWindow();
 
@@ -82,14 +81,12 @@ const char DEBUG_STRING[] = "ID: %d\nState: %s\nType: %s\nProd Cycle Length: %d\
 #define new_min(x,y) (((x) <= (y)) ? (x) : (y))
 
 void DebugGui(World *world, char *message) {
+    GuiScrollPanel((Rectangle){0,0,280,400}, NULL, (Rectangle){0,0,250,2000}, &viewScroll, &view);
+    BeginScissorMode(view.x, view.y, view.width, view.height);
 
     if (!IsStationListEmpty(&world->stations)) {
         Station *station = world->stations.stations[world->debugStation];
         int inputs = station->numOfInputs;
-
-        GuiScrollPanel((Rectangle){0,0,280,400}, NULL, (Rectangle){0,0,250,2000}, &viewScroll, &view);
-        BeginScissorMode(view.x, view.y, view.width, view.height);
-
         snprintf(message, 2048, DEBUG_STRING, station->id,
             StationStateToString(station->stationState), StationTypeToString(station->stationType), station->ticksPerCycle, station->cycleTickCount,
             station->maxTicksSinceLastCycle, station->ticksSinceLastCycle);
@@ -113,13 +110,28 @@ void DebugGui(World *world, char *message) {
         if (GuiButton((Rectangle){180 + viewScroll.x, 25 + viewScroll.y, 35,25}, "Prev")) {
             world->debugStation = new_max(0, world->debugStation - 1);
         }
+    }
         if (GuiButton((Rectangle){180 + viewScroll.x, 50 + viewScroll.y, 35,25}, "Tick")) {
             UpdateStations(&world->stations);
         }
         GuiCheckBox((Rectangle){180 + viewScroll.x, 75 + viewScroll.y, 35,25}, "Run", &world->runTicks);
         snprintf(message, 2048, "FT: %.2f", 1 / GetFrameTime());
         GuiLabel((Rectangle){180 + viewScroll.x, 100 + viewScroll.y, 80,25}, message);
+        if (GuiValueBox((Rectangle){180 + viewScroll.x, 125 + viewScroll.y, 80,25}, "", &valueBox, 0, 7, editMode)) editMode = !editMode;
+        if (GuiButton((Rectangle){180 + viewScroll.x, 150 + viewScroll.y, 35,25}, "Add")) {
+            PushStation(&world->stations, NewStation(valueBox));
+        }
+        if (GuiButton((Rectangle){180 + viewScroll.x, 175 + viewScroll.y, 35,25}, "Del")) {
+            if (!IsStationListEmpty(&world->stations)) {
+                FreeStation(PopStation(&world->stations));
+            }
+        }
+        if (GuiButton((Rectangle){180 + viewScroll.x, 200 + viewScroll.y, 35,25}, "Save")) {
+            SaveStations(&world->stations);
+        }
+        if (GuiButton((Rectangle){180 + viewScroll.x, 225 + viewScroll.y, 35,25}, "Load")) {
+            LoadStations(&world->stations);
+        }
 
         EndScissorMode();
-    }
 }

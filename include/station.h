@@ -77,7 +77,7 @@ void FreeStationList(StationList* stationList);
 void UpdateStations(StationList* stations);
 
 Station* NewStation(StationType type);
-static void FreeStation(Station *station);
+void FreeStation(Station *station);
 static void InitStation(Station *station);
 static void UpdateStation(Station *station);
 static void CheckStationCycle(Station *station);

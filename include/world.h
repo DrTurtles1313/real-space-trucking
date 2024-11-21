@@ -1,5 +1,6 @@
 #ifndef WORLD_H
 #define WORLD_H
+#include <agent.h>
 #include <raylib.h>
 #include "player.h"
 #include "station.h"
@@ -14,6 +15,7 @@ struct World {
     Player player;
     Vector2 mouseWorldPosition;
     StationList stations;
+    AgentList agents;
     bool debug;
     bool runTicks;
     float timeSinceTick;

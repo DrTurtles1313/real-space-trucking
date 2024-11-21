@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <raylib.h>
 #include <math.h>
-#include <raymath.h>
 #include "raygui.h"
 #include "player.h"
 #include "station.h"
@@ -48,6 +47,7 @@ int main(void) {
     world.timeSinceTick = 0.0f;
 
     InitStationList(&world.stations);
+    InitAgentList(&world.agents);
 
     char messageBox[2048];
 
@@ -119,7 +119,7 @@ void DebugGui(World *world, char *message) {
         GuiLabel((Rectangle){180 + viewScroll.x, 100 + viewScroll.y, 80,25}, message);
         if (GuiValueBox((Rectangle){180 + viewScroll.x, 125 + viewScroll.y, 80,25}, "", &valueBox, 0, 7, editMode)) editMode = !editMode;
         if (GuiButton((Rectangle){180 + viewScroll.x, 150 + viewScroll.y, 35,25}, "Add")) {
-            PushStation(&world->stations, NewStation(valueBox));
+            PushStation(&world->stations, NewStation(valueBox, 0));
         }
         if (GuiButton((Rectangle){180 + viewScroll.x, 175 + viewScroll.y, 35,25}, "Del")) {
             if (!IsStationListEmpty(&world->stations)) {
@@ -131,6 +131,9 @@ void DebugGui(World *world, char *message) {
         }
         if (GuiButton((Rectangle){180 + viewScroll.x, 225 + viewScroll.y, 35,25}, "Load")) {
             LoadStations(&world->stations);
+        }
+        if (GuiButton((Rectangle){180 + viewScroll.x, 250 + viewScroll.y, 35,25}, "Sort")) {
+            SortStationList(&world->stations);
         }
 
         EndScissorMode();

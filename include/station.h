@@ -57,6 +57,7 @@ struct Station {
     int maxTicksSinceLastCycle;
     int ticksSinceLastCycle;
     int id;
+    int agentID;
 };
 
 typedef struct Station Station;
@@ -75,8 +76,9 @@ bool IsStationListEmpty(StationList* stationList);
 void InitStationList(StationList* stationList);
 void FreeStationList(StationList* stationList);
 void UpdateStations(StationList* stations);
+void SortStationList(StationList* stationList);
 
-Station* NewStation(StationType type);
+Station* NewStation(StationType type, int agentID);
 void FreeStation(Station *station);
 static void InitStation(Station *station);
 static void UpdateStation(Station *station);

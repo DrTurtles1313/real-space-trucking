@@ -3,11 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-Station* NewStation(StationType type) {
+int nextStationId = 0;
+
+Station* NewStation(StationType type, int agentID) {
     Station *station = malloc(sizeof(Station));
 
     station->stationType = type;
     station->stationState = INIT;
+    station->id = nextStationId++;
+    station->agentID = agentID;
 
     return station;
 }
@@ -289,7 +293,6 @@ void PushStation(StationList* stationList, Station* station) {
     }
 
     stationList->top++;
-    station->id = stationList->top;
     stationList->stations[stationList->top] = station;
 }
 
@@ -323,6 +326,35 @@ void FreeStationList(StationList* stationList) {
     }
 
     free(stationList->stations);
+}
+
+int CompareStationID(Station* a, Station* b) {
+    int idA = a->id;
+    int idB = b->id;
+
+    return (idA - idB);
+}
+
+void SortStationList(StationList* stationList) {
+    int n = stationList->top;
+
+    for (int i = 0; i < n; i++) {
+        int min_idx = i;
+
+        for (int j = i + 1; j < n + 1; j++) {
+            if (stationList->stations[j]->id < stationList->stations[min_idx]->id) {
+
+                // Update min_idx if a smaller element is found
+                min_idx = j;
+            }
+        }
+
+        if (min_idx != i) {
+            Station* temp = stationList->stations[i];
+            stationList->stations[i] = stationList->stations[min_idx];
+            stationList->stations[min_idx] = temp;
+        }
+    }
 }
 
 char* ResourceToString(Resource resource) {
@@ -393,7 +425,7 @@ void SaveStations(StationList* stationList) {
     while (!IsStationListEmpty(stationList)) {
         Station* station = PopStation(stationList);
 
-        fprintf(filePointer, "%d,%d,%d,", station->stationType, station->ticksPerCycle, station->maxTicksSinceLastCycle);
+        fprintf(filePointer, "%d,%d,%d,%d,%d,", station->stationType, station->ticksPerCycle, station->maxTicksSinceLastCycle, station->id, station->agentID);
         fprintf(filePointer, "%d,%d,%d,%d,%d,", station->outputType, station->outputAmount, station->outputPrice, station->outputPerCycle, station->desiredOutputAmount);
         fprintf(filePointer, "%d,", station->numOfInputs);
         for (int i = 0; i < station->numOfInputs; i++) {
@@ -405,6 +437,8 @@ void SaveStations(StationList* stationList) {
     }
 
     fclose(filePointer);
+
+    nextStationId = 0;
 }
 
 void LoadStations(StationList* stationList) {
@@ -425,6 +459,11 @@ void LoadStations(StationList* stationList) {
         station->ticksPerCycle = atoi(token);
         token = strtok(NULL, ",");
         station->maxTicksSinceLastCycle = atoi(token);
+
+        token = strtok(NULL, ",");
+        station->id = atoi(token);
+        token = strtok(NULL, ",");
+        station->agentID = atoi(token);
 
         token = strtok(NULL, ",");
         station->outputType = atoi(token);
@@ -463,4 +502,7 @@ void LoadStations(StationList* stationList) {
 
         PushStation(stationList, station);
     }
+
+    SortStationList(stationList);
+    nextStationId = PeekStationList(stationList)->id + 1;
 }

@@ -2,7 +2,7 @@
 #define STATION_H
 
 #include <stdbool.h>
-#define MAX_STATIONS 500
+#include "objectStack.h"
 
 enum Resource {
     ORE,
@@ -62,21 +62,11 @@ struct Station {
 
 typedef struct Station Station;
 
-struct StationList {
-    Station *stations[MAX_STATIONS];
-    int top;
-};
-typedef struct StationList StationList;
 
-Station* PopStation(StationList* stationList);
-void PushStation(StationList* stationList, Station *station);
-Station* PeekStationList(StationList* stationList);
-bool IsStationListFull(StationList* stationList);
-bool IsStationListEmpty(StationList* stationList);
-void InitStationList(StationList* stationList);
-void FreeStationList(StationList* stationList);
-void UpdateStations(StationList* stations);
-void SortStationList(StationList* stationList);
+
+void FreeStationList(ObjStack* stationList);
+void SortStationList(ObjStack* stationList);
+void UpdateStations(ObjStack* stations);
 
 Station* NewStation(StationType type, int agentID);
 void FreeStation(Station *station);
@@ -89,6 +79,9 @@ char* ResourceToString(Resource resource);
 char* StationTypeToString(StationType type);
 char* StationStateToString(StationState state);
 
-void SaveStations(StationList *stationList);
-void LoadStations(StationList *stationList);
+void SaveStations(ObjStack *stationList);
+void LoadStations(ObjStack *stationList);
+
+bool BuyStationOutput(int stationID, int entityID, int amt);
+bool SellStationInput(int stationID, int entityID, int amt, Resource inputType);
 #endif //STATION_H

@@ -14,8 +14,8 @@ struct World {
     Camera2D camera;
     Player player;
     Vector2 mouseWorldPosition;
-    StationList stations;
-    AgentList agents;
+    ObjStack stations;
+    ObjStack agents;
     bool debug;
     bool runTicks;
     float timeSinceTick;

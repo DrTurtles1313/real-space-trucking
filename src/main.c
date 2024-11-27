@@ -46,8 +46,8 @@ int main(void) {
     world.runTicks = false;
     world.timeSinceTick = 0.0f;
 
-    InitStationList(&world.stations);
-    InitAgentList(&world.agents);
+    InitObjectStack(&world.stations);
+    InitObjectStack(&world.agents);
 
     char messageBox[2048];
 
@@ -84,8 +84,8 @@ void DebugGui(World *world, char *message) {
     GuiScrollPanel((Rectangle){0,0,280,400}, NULL, (Rectangle){0,0,250,2000}, &viewScroll, &view);
     BeginScissorMode(view.x, view.y, view.width, view.height);
 
-    if (!IsStationListEmpty(&world->stations)) {
-        Station *station = world->stations.stations[world->debugStation];
+    if (!IsObjectStackEmpty(&world->stations)) {
+        Station *station = world->stations.objects[world->debugStation];
         int inputs = station->numOfInputs;
         snprintf(message, 2048, DEBUG_STRING, station->id,
             StationStateToString(station->stationState), StationTypeToString(station->stationType), station->ticksPerCycle, station->cycleTickCount,
@@ -119,11 +119,11 @@ void DebugGui(World *world, char *message) {
         GuiLabel((Rectangle){180 + viewScroll.x, 100 + viewScroll.y, 80,25}, message);
         if (GuiValueBox((Rectangle){180 + viewScroll.x, 125 + viewScroll.y, 80,25}, "", &valueBox, 0, 7, editMode)) editMode = !editMode;
         if (GuiButton((Rectangle){180 + viewScroll.x, 150 + viewScroll.y, 35,25}, "Add")) {
-            PushStation(&world->stations, NewStation(valueBox, 0));
+            PushObject(&world->stations, NewStation(valueBox, 0));
         }
         if (GuiButton((Rectangle){180 + viewScroll.x, 175 + viewScroll.y, 35,25}, "Del")) {
-            if (!IsStationListEmpty(&world->stations)) {
-                FreeStation(PopStation(&world->stations));
+            if (!IsObjectStackEmpty(&world->stations)) {
+                FreeStation(PopObject(&world->stations));
             }
         }
         if (GuiButton((Rectangle){180 + viewScroll.x, 200 + viewScroll.y, 35,25}, "Save")) {

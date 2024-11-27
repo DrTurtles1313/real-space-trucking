@@ -17,50 +17,59 @@ void FreeAgent(Agent* agent) {
     free(agent);
 }
 
-void InitAgentList(AgentList* list) {
-    list->top = -1;
-}
+Agent* GetAgent(ObjStack* list, int id) {
+    if (!list->sorted) {
+        SortAgentList(list);
+    }
 
-void PushAgent(AgentList* list, Agent* agent) {
-    if (!IsAgentListFull(list)) {
-        list->top++;
-        list->agents[list->top];
-    }
-    else {
-        printf("Agent list is full\n");
-    }
-}
+    int low = 0;
+    int high = list->top;
+    Agent* current;
 
-Agent* PeekAgent(AgentList* list) {
-    if (!IsAgentListEmpty(list)) {
-        return list->agents[list->top];
+    // Repeat until the pointers low and high meet each other
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        current = (Agent*)list->objects[mid];
+
+        if (id == current->id)
+            return list->objects[mid];
+
+        if (id > current->id)
+            low = mid + 1;
+
+        else
+            high = mid - 1;
     }
+
     return NULL;
 }
 
-Agent* PopAgent(AgentList* list) {
-    if (!IsAgentListEmpty(list)) {
-        Agent* agent = list->agents[list->top];
-        list->top--;
-        return agent;
-    }
-    return NULL;
-}
+void SortAgentList(ObjStack* list) {
+    if (list->sorted) return;
+    int n = list->top;
+    Agent* current;
+    Agent* min;
 
-bool IsAgentListEmpty(AgentList* list) {
-    if (list->top == -1) {
-        return true;
-    }
-    return false;
-}
+    for (int i = 0; i < n; i++) {
+        int min_idx = i;
 
-bool IsAgentListFull(AgentList* list) {
-    if (list->top == MAX_AGENTS) {
-        return true;
-    }
-    return false;
-}
+        for (int j = i + 1; j < n + 1; j++) {
+            current = (Agent*)list->objects[j];
+            min = (Agent*)list->objects[min_idx];
 
-Agent* GetAgent(AgentList* list, int id) {
-    return NULL;
+            if (current->id < min->id) {
+
+                // Update min_idx if a smaller element is found
+                min_idx = j;
+            }
+        }
+
+        if (min_idx != i) {
+            Agent* temp = list->objects[i];
+            list->objects[i] = list->objects[min_idx];
+            list->objects[min_idx] = temp;
+        }
+    }
+
+    list->sorted = true;
 }

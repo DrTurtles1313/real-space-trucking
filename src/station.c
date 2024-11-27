@@ -25,9 +25,9 @@ void FreeStation(Station *station) {
     free(station);
 }
 
-void UpdateStations(StationList* stations) {
+void UpdateStations(ObjStack* stations) {
     for (int i = 0; i <= stations->top; i++) {
-        UpdateStation(stations->stations[i]);
+        UpdateStation(stations->objects[i]);
     }
 }
 
@@ -275,74 +275,31 @@ static void stationProductionCycle(Station *station) {
     }
 }
 
-Station* PopStation(StationList* stationList) {
-    if (IsStationListEmpty(stationList)) {
-        printf("Stack Underflow");
-        return NULL;
-    }
-
-    Station* popped = stationList->stations[stationList->top];
-    stationList->top--;
-
-    return popped;
-}
-
-void PushStation(StationList* stationList, Station* station) {
-    if (IsStationListFull(stationList)) {
-        printf("Stack Overflow");
-    }
-
-    stationList->top++;
-    stationList->stations[stationList->top] = station;
-}
-
-Station* PeekStationList(StationList* stationList) {
-    if (IsStationListEmpty(stationList)) {
-        printf("Stack is empty");
-        return NULL;
-    }
-
-    Station* peeked = stationList->stations[stationList->top];
-    return peeked;
-}
-
-bool IsStationListEmpty(StationList* stationList) {
-    return stationList->top == -1;
-}
-
-bool IsStationListFull(StationList* stationList) {
-    return stationList->top == MAX_STATIONS - 1;
-}
-
-void InitStationList(StationList* stationList) {
-    stationList->top = -1;
-}
-
-void FreeStationList(StationList* stationList) {
-    for (int i = 0; i < MAX_STATIONS; i++) {
-        if (stationList->stations[i] != NULL) {
-            FreeStation(stationList->stations[i]);
+void FreeStationList(ObjStack* stationList) {
+    for (int i = 0; i < STACK_SIZE; i++) {
+        if (stationList->objects[i] != NULL) {
+            FreeStation(stationList->objects[i]);
         }
     }
 
-    free(stationList->stations);
+    free(stationList->objects);
 }
 
-int CompareStationID(Station* a, Station* b) {
-    int idA = a->id;
-    int idB = b->id;
+void SortStationList(ObjStack* stationList) {
+    if (stationList->sorted) return;
 
-    return (idA - idB);
-}
-
-void SortStationList(StationList* stationList) {
     int n = stationList->top;
+    Station* current;
+    Station* min;
 
     for (int i = 0; i < n; i++) {
         int min_idx = i;
 
         for (int j = i + 1; j < n + 1; j++) {
-            if (stationList->stations[j]->id < stationList->stations[min_idx]->id) {
+            current = stationList->objects[j];
+            min = stationList->objects[min_idx];
+
+            if (current->id < min->id) {
 
                 // Update min_idx if a smaller element is found
                 min_idx = j;
@@ -350,11 +307,13 @@ void SortStationList(StationList* stationList) {
         }
 
         if (min_idx != i) {
-            Station* temp = stationList->stations[i];
-            stationList->stations[i] = stationList->stations[min_idx];
-            stationList->stations[min_idx] = temp;
+            Station* temp = stationList->objects[i];
+            stationList->objects[i] = stationList->objects[min_idx];
+            stationList->objects[min_idx] = temp;
         }
     }
+
+    stationList->sorted = true;
 }
 
 char* ResourceToString(Resource resource) {
@@ -419,19 +378,21 @@ char* StationStateToString(StationState state) {
     return "0";
 }
 
-void SaveStations(StationList* stationList) {
+void SaveStations(ObjStack* stationList) {
     FILE* filePointer = fopen("assets/Stations", "w");
 
-    while (!IsStationListEmpty(stationList)) {
-        Station* station = PopStation(stationList);
+    while (!IsObjectStackEmpty(stationList)) {
+        Station* station = PopObject(stationList);
 
-        fprintf(filePointer, "%d,%d,%d,%d,%d,", station->stationType, station->ticksPerCycle, station->maxTicksSinceLastCycle, station->id, station->agentID);
-        fprintf(filePointer, "%d,%d,%d,%d,%d,", station->outputType, station->outputAmount, station->outputPrice, station->outputPerCycle, station->desiredOutputAmount);
-        fprintf(filePointer, "%d,", station->numOfInputs);
-        for (int i = 0; i < station->numOfInputs; i++) {
-            fprintf(filePointer, "%d,%d,%d,%d,%d,", station->inputTypes[i], station->inputAmounts[i], station->inputPrices[i], station->inputsPerCycle[i], station->desiredInputAmounts[i]);
+        if (station->stationState != IDLE) {
+            fprintf(filePointer, "%d,%d,%d,%d,%d,", station->stationType, station->ticksPerCycle, station->maxTicksSinceLastCycle, station->id, station->agentID);
+            fprintf(filePointer, "%d,%d,%d,%d,%d,", station->outputType, station->outputAmount, station->outputPrice, station->outputPerCycle, station->desiredOutputAmount);
+            fprintf(filePointer, "%d,", station->numOfInputs);
+            for (int i = 0; i < station->numOfInputs; i++) {
+                fprintf(filePointer, "%d,%d,%d,%d,%d,", station->inputTypes[i], station->inputAmounts[i], station->inputPrices[i], station->inputsPerCycle[i], station->desiredInputAmounts[i]);
+            }
+            fprintf(filePointer, "\n");
         }
-        fprintf(filePointer, "\n");
 
         free(station);
     }
@@ -441,14 +402,13 @@ void SaveStations(StationList* stationList) {
     nextStationId = 0;
 }
 
-void LoadStations(StationList* stationList) {
+void LoadStations(ObjStack* stationList) {
     //char * buffer = 0;
     //long length;
     FILE * f = fopen ("assets/Stations", "r");
     char buffer[50];
 
     while (fgets(buffer, 50, f)) {
-        printf("%s", buffer);
 
         Station* station = malloc(sizeof(Station));
 
@@ -500,9 +460,9 @@ void LoadStations(StationList* stationList) {
 
         station->stationState = IDLE;
 
-        PushStation(stationList, station);
+        PushObject(stationList, station);
     }
 
     SortStationList(stationList);
-    nextStationId = PeekStationList(stationList)->id + 1;
+    nextStationId = ((Station*)PeekObject(stationList))->id + 1;
 }

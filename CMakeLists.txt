@@ -33,6 +33,8 @@ set(SOURCE_FILES src/main.c
         src/station.c
         src/world.c
         src/agent.c
+        src/ship.c
+        src/objectStack.c
 )
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 

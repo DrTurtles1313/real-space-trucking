@@ -384,7 +384,8 @@ void SaveStations(ObjStack* stationList) {
     while (!IsObjectStackEmpty(stationList)) {
         Station* station = PopObject(stationList);
 
-        if (station->stationState != IDLE) {
+        //Don't save uninitalized stations
+        if (station->stationState != INIT) {
             fprintf(filePointer, "%d,%d,%d,%d,%d,", station->stationType, station->ticksPerCycle, station->maxTicksSinceLastCycle, station->id, station->agentID);
             fprintf(filePointer, "%d,%d,%d,%d,%d,", station->outputType, station->outputAmount, station->outputPrice, station->outputPerCycle, station->desiredOutputAmount);
             fprintf(filePointer, "%d,", station->numOfInputs);

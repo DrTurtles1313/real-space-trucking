@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include "objectStack.h"
 
-int nextAgentId;
 
 enum AgentType {
     FREELANCER,

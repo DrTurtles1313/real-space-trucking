@@ -6,7 +6,7 @@ int nextAgentID = 0;
 
 Agent* NewAgent(AgentType type) {
     Agent* agent = malloc(sizeof(Agent));
-    agent->id = nextAgentId++;
+    agent->id = nextAgentID++;
     agent->wealth = 0;
     agent->type = type;
     agent->state = AGENT_IDLE;

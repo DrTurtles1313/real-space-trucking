@@ -3,14 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-int nextStationId = 0;
+int nextStationID = 0;
 
 Station* NewStation(StationType type, int agentID) {
     Station *station = malloc(sizeof(Station));
 
     station->stationType = type;
     station->stationState = INIT;
-    station->id = nextStationId++;
+    station->id = nextStationID++;
     station->agentID = agentID;
 
     return station;
@@ -400,12 +400,12 @@ void SaveStations(ObjStack* stationList) {
 
     fclose(filePointer);
 
-    nextStationId = 0;
+    nextStationID = 0;
 }
 
 void LoadStations(ObjStack* stationList) {
-    //char * buffer = 0;
-    //long length;
+    stationList->sorted = false;
+
     FILE * f = fopen ("assets/Stations", "r");
     char buffer[50];
 
@@ -465,5 +465,5 @@ void LoadStations(ObjStack* stationList) {
     }
 
     SortStationList(stationList);
-    nextStationId = ((Station*)PeekObject(stationList))->id + 1;
+    nextStationID = ((Station*)PeekObject(stationList))->id + 1;
 }
